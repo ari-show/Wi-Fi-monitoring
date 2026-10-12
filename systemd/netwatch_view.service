@@ -1,0 +1,12 @@
+[Unit]
+Description=netwatch: ブラウザ表示
+
+[Service]
+WorkingDirectory=@WORKING_DIRECTORY@
+ExecStart=@PYTHON@ -u netwatch_view.py netwatch.csv --host 0.0.0.0 --port @PORT@
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+

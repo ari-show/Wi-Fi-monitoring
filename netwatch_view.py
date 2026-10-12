@@ -4,6 +4,7 @@
   python3 netwatch_view.py netwatch.csv [--port 8080] [--host 0.0.0.0]
 ブラウザで http://<このマシンのIP>:8080/ を開く。
 """
+
 import argparse
 import http.server
 import os
@@ -209,10 +210,16 @@ def tail_csv(path, max_bytes):
 
 def main():
     ap = argparse.ArgumentParser(description="netwatch CSV ビューア")
-    ap.add_argument("csv", help="netwatch.py --log で出力した CSV")
-    ap.add_argument("--port", type=int, default=8080)
-    ap.add_argument("--host", default="0.0.0.0", help="127.0.0.1 にすると SSH トンネル経由のみ")
+    ap.add_argument("csv", help="main.py --log で出力した CSV")
+    ap.add_argument(
+        "--port", type=int, default=8080, help="待受ポート（0で空きを自動確保）"
+    )
+    ap.add_argument(
+        "--host", default="0.0.0.0", help="待受アドレス（127.0.0.1 なら同じ端末のみ）"
+    )
     a = ap.parse_args()
+    if not 0 <= a.port <= 65535:
+        ap.error("--port は 0〜65535 で指定してください")
     path = os.path.abspath(a.csv)
     ev_path = os.path.splitext(path)[0] + ".events.csv"
 
@@ -241,13 +248,20 @@ def main():
         def log_message(self, *args):
             pass
 
-    print(f"CSV: {path}\nhttp://{a.host}:{a.port}/  (Ctrl+C で終了)")
     try:
-        http.server.ThreadingHTTPServer((a.host, a.port), H).serve_forever()
+        server = http.server.ThreadingHTTPServer((a.host, a.port), H)
+    except OSError as exc:
+        ap.exit(1, f"待受を開始できませんでした ({a.host}:{a.port}): {exc}\n")
+    try:
+        with server:
+            port = server.server_address[1]
+            print(f"CSV: {path}\nhttp://{a.host}:{port}/  (Ctrl+C で終了)", flush=True)
+            if a.host == "0.0.0.0":
+                print(f"LAN内から: http://<この端末のLAN IP>:{port}/", flush=True)
+            server.serve_forever()
     except KeyboardInterrupt:
         pass
 
 
 if __name__ == "__main__":
     main()
-

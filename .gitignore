@@ -3,3 +3,13 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 *.py[cod]
+
+
+# CSVファイルの除外
+netwatch.csv
+netwatch.csv.*
+netwatch.events.csv
+netwatch.events.csv.*
+
+# clone 先の絶対パスを含む、端末ごとの生成済みユニット
+systemd/generated/

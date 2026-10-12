@@ -1,0 +1,13 @@
+[Unit]
+Description=netwatch: 回線の層別 ping 監視
+
+[Service]
+WorkingDirectory=@WORKING_DIRECTORY@
+ExecStart=@PYTHON@ -u main.py --quiet --log netwatch.csv
+Restart=always
+RestartSec=10
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target
+
